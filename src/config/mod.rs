@@ -1,29 +1,39 @@
-pub struct Config<'a> {
-    pub query: &'a String,
-    pub file_path: &'a String,
+pub struct Config {
+    pub query: String,
+    pub file_path: String,
     pub ignore_case: bool,
     pub write_to_file: bool,
 }
 
-impl Config<'_>{
-    pub fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("Not enough arguments!");
-        }
+impl Config{
+    pub fn build(
+        mut args: impl Iterator<Item = String>
+    ) -> Result<Config, &'static str> {
+        
+        args.next();
 
-        let query = &args[1];
-        let file_path = &args[2];
-
-        let (
-            ignore_case, 
-            write_to_file
+        let ( 
+            query,
+            file_path,
+            mut ignore_case,
+            mut write_to_file
         ) = (
-            args.contains(&String::from("ignore_case")), 
-            args.contains(&String::from("write"))
+            match args.next() {
+                Some(arg) => arg,
+                None => return Err("Didn't get a query string."),
+            },
+            match args.next() {
+                Some(arg) => arg,
+                None => return Err("Didn't get a file path."),
+            },
+            false,
+            false
         );
-            
 
-        // let ignore_case: bool = env::var("IGNORE_CASE").is_ok();
+        for arg in args {
+            if arg == String::from("ignore_case") { ignore_case = true }
+            else if arg == String::from("write") {write_to_file = true }
+        }
         
         Ok(Config { 
             query, 
